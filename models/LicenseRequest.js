@@ -1,0 +1,45 @@
+const mongoose = require("mongoose");
+
+const licenseRequestSchema = new mongoose.Schema({
+  agreementId: { type: String, unique: true, sparse: true },
+  geneEditId: { type: mongoose.Schema.Types.ObjectId, ref: "GeneEdit" },
+  licenseAgreementId: { type: mongoose.Schema.Types.ObjectId, ref: "LicenseAgreement" },
+  tokenId: { type: Number, required: true },
+  certificateId: { type: String },
+  geneEditTitle: { type: String },
+  ownerWallet: { type: String, lowercase: true },
+  requesterWallet: { type: String, required: true, lowercase: true },
+  requesterUsername: { type: String },
+  purpose: { type: String, required: true },
+  intendedUse: { type: String, enum: ["Research", "Commercial", "Educational", "Clinical prototype", "Other"], default: "Research" },
+  duration: { type: String, default: "1 year" },
+  attributionRequired: { type: Boolean, default: true },
+  commercialUseAllowed: { type: Boolean, default: false },
+  redistributionAllowed: { type: Boolean, default: false },
+  derivativeUseAllowed: { type: Boolean, default: false },
+  organization: { type: String },
+  notes: { type: String },
+  paymentType: { type: String, enum: ["Free", "Fixed fee", "Royalty percentage", "Custom terms"], default: "Free" },
+  fixedFee: { type: String },
+  royaltyPercent: { type: Number },
+  customTerms: { type: String },
+  agreementText: { type: String },
+  ownerFeedback: { type: String },
+  requesterMessage: { type: String },
+  rejectionReason: { type: String },
+  verificationStatus: { type: String, enum: ["pending_verification", "verified", "invalid"], default: "pending_verification" },
+  verifiedAt: { type: Date },
+  verificationHash: { type: String },
+  verificationLink: { type: String },
+  status: { type: String, enum: ["pending", "requested", "approved", "rejected", "expired", "revoked"], default: "pending" },
+  transactionHash: { type: String },
+  txHash: { type: String },
+  requestedAt: { type: Date, default: Date.now },
+  resolvedAt: { type: Date },
+  approvedAt: { type: Date },
+  rejectedAt: { type: Date },
+});
+
+licenseRequestSchema.index({ tokenId: 1, requesterWallet: 1 }, { unique: true });
+
+module.exports = mongoose.model("LicenseRequest", licenseRequestSchema);
