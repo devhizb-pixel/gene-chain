@@ -25,17 +25,28 @@ const supportRouter = require("./routes/support");
 const relayerRouter = require("./routes/relayer");
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 5000;
 
-const allowedOrigins = (process.env.CORS_ORIGINS || "http://localhost:5173,http://localhost:3000,http://127.0.0.1:5173")
-  .split(",").map((value) => value.trim()).filter(Boolean);
+const allowedOrigins = [
+  "https://gene-chain-brx4.vercel.app",
+  "http://localhost:5173",
+  "http://localhost:3000"
+];
+
 app.use(cors({
-  origin(origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
-    return callback(new Error("Origin is not allowed by CORS."));
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
   },
   credentials: true,
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"]
 }));
+
+app.options("*", cors());
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.use((req, _res, next) => {
@@ -89,9 +100,8 @@ app.use(errorHandler);
 
 connectDB()
   .then(() => {
-    app.listen(PORT, () => {
-      console.log(`GeneChain Backend API listening on http://localhost:${PORT}`);
-      console.log(`Network: ${process.env.NETWORK || "localhost"}`);
+    app.listen(PORT, "0.0.0.0", () => {
+      console.log(`Server running on port ${PORT}`);
     });
   })
   .catch(() => process.exit(1));
