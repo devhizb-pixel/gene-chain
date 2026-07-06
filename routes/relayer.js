@@ -10,7 +10,7 @@ const router = express.Router();
 
 function contractWithRelayer() {
   const network = process.env.NETWORK || "sepolia";
-  const deployment = require(path.join(__dirname, `../../deployments/${network}.json`));
+  const deployment = require(path.join(__dirname, `../deployments/${network}.json`));
   if (!process.env.PRIVATE_KEY || !process.env.SEPOLIA_RPC_URL) throw new Error("Relayer is not configured.");
   const provider = new ethers.JsonRpcProvider(process.env.SEPOLIA_RPC_URL);
   const signer = new ethers.Wallet(process.env.PRIVATE_KEY, provider);

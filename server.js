@@ -73,7 +73,7 @@ app.get("/api/health", async (_req, res) => {
   const network = process.env.NETWORK || "localhost";
   let deploymentInfo = null;
   try {
-    deploymentInfo = require(path.join(__dirname, `../deployments/${network}.json`));
+    deploymentInfo = require(path.join(__dirname, `./deployments/${network}.json`));
   } catch { /* optional */ }
   let rpc = { status: "unavailable", blockNumber: null };
   try {

@@ -31,7 +31,7 @@ function publicDuplicate(edit, req) {
 async function contractHashExists(sequenceHash) {
   try {
     const network = process.env.NETWORK || "localhost";
-    const deployment = require(path.join(__dirname, `../../deployments/${network}.json`));
+    const deployment = require(path.join(__dirname, `../deployments/${network}.json`));
     const rpcUrl = network === "localhost" ? "http://127.0.0.1:8545" : process.env.SEPOLIA_RPC_URL;
     if (!rpcUrl) return false;
     const contract = new ethers.Contract(deployment.address, deployment.abi, new ethers.JsonRpcProvider(rpcUrl));

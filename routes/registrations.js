@@ -5,7 +5,7 @@ const { ethers } = require("ethers");
 
 function getContractInstance() {
   const network = process.env.NETWORK || "localhost";
-  const deployPath = path.join(__dirname, `../../deployments/${network}.json`);
+  const deployPath = path.join(__dirname, `../deployments/${network}.json`);
 
   let deployment;
   try {
