@@ -11,7 +11,8 @@ const router = express.Router();
 function contractWithRelayer() {
   const network = process.env.NETWORK || "sepolia";
   const deployment = require(path.join(__dirname, `../deployments/${network}.json`));
-  if (!process.env.PRIVATE_KEY || !process.env.SEPOLIA_RPC_URL) throw new Error("Relayer is not configured.");
+  if (!process.env.PRIVATE_KEY) throw new Error("PRIVATE_KEY env var is not set on the server.");
+  if (!process.env.SEPOLIA_RPC_URL) throw new Error("SEPOLIA_RPC_URL env var is not set on the server.");
   const provider = new ethers.JsonRpcProvider(process.env.SEPOLIA_RPC_URL);
   const signer = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
   return new ethers.Contract(process.env.CONTRACT_ADDRESS || deployment.address, deployment.abi, signer);
@@ -36,8 +37,10 @@ router.post("/mint", verifyUser, async (req, res, next) => {
     if (!user || user.walletAddress !== req.user.walletAddress) return res.status(401).json({ error: "DID identity could not be verified." });
     await AuditLog.create({ action: "relayer_transaction_submitted", actor: user.did, actorWallet: user.walletAddress, actorRole: "researcher", details: { sequenceHash } });
     const contract = contractWithRelayer();
-    if (await contract.hashExists(sequenceHash)) return res.status(409).json({ error: "Duplicate sequence hash already registered.", code: "DUPLICATE_HASH" });
-    const tx = await contract.mintGeneEditFor(user.walletAddress, ipfsCID, sequenceHash, licenseType, typeof metadata === "string" ? metadata : JSON.stringify(metadata || {}));
+    // Pad to bytes32 to match how the contract stores and checks hashes
+    const bytes32Hash = ethers.zeroPadValue(sequenceHash, 32);
+    if (await contract.hashExists(bytes32Hash)) return res.status(409).json({ error: "Duplicate sequence hash already registered.", code: "DUPLICATE_HASH" });
+    const tx = await contract.mintGeneEditFor(user.walletAddress, ipfsCID, bytes32Hash, licenseType, typeof metadata === "string" ? metadata : JSON.stringify(metadata || {}));
     const receipt = await tx.wait(1);
     const event = receipt.logs.map((log) => { try { return contract.interface.parseLog(log); } catch { return null; } }).find((item) => item?.name === "EditRegistered");
     const tokenId = event?.args?.[0]?.toString();

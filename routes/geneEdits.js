@@ -34,8 +34,11 @@ async function contractHashExists(sequenceHash) {
     const deployment = require(path.join(__dirname, `../deployments/${network}.json`));
     const rpcUrl = network === "localhost" ? "http://127.0.0.1:8545" : process.env.SEPOLIA_RPC_URL;
     if (!rpcUrl) return false;
-    const contract = new ethers.Contract(deployment.address, deployment.abi, new ethers.JsonRpcProvider(rpcUrl));
-    return Boolean(await contract.hashExists(sequenceHash));
+    const contractAddress = process.env.CONTRACT_ADDRESS || deployment.address;
+    const contract = new ethers.Contract(contractAddress, deployment.abi, new ethers.JsonRpcProvider(rpcUrl));
+    // Ensure the hash is properly padded to bytes32 before querying the contract
+    const bytes32Hash = ethers.zeroPadValue(sequenceHash, 32);
+    return Boolean(await contract.hashExists(bytes32Hash));
   } catch (error) {
     console.warn("[duplicate-check] Contract check unavailable:", error.message);
     return false;

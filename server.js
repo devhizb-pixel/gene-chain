@@ -1,6 +1,5 @@
 require("dotenv").config();
-// Reuse root Hardhat/Sepolia variables such as PRIVATE_KEY without duplicating secrets.
-require("dotenv").config({ path: require("path").join(__dirname, "../.env") });
+// Note: the parent .env is only loaded locally; on Railway all vars come from the dashboard.
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
@@ -27,10 +26,12 @@ const relayerRouter = require("./routes/relayer");
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Build allowed origins from env vars so no hardcoding is needed after deployment
 const allowedOrigins = [
-  "https://gene-chain-brx4.vercel.app",
   "http://localhost:5173",
-  "http://localhost:3000"
+  "http://localhost:3000",
+  ...(process.env.FRONTEND_URL ? [process.env.FRONTEND_URL] : []),
+  ...(process.env.CORS_ORIGINS ? process.env.CORS_ORIGINS.split(",").map((o) => o.trim()).filter(Boolean) : []),
 ];
 
 app.use(cors({
