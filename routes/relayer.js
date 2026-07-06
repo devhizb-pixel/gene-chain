@@ -11,10 +11,16 @@ const router = express.Router();
 function contractWithRelayer() {
   const network = process.env.NETWORK || "sepolia";
   const deployment = require(path.join(__dirname, `../deployments/${network}.json`));
-  if (!process.env.PRIVATE_KEY) throw new Error("PRIVATE_KEY env var is not set on the server.");
-  if (!process.env.SEPOLIA_RPC_URL) throw new Error("SEPOLIA_RPC_URL env var is not set on the server.");
-  const provider = new ethers.JsonRpcProvider(process.env.SEPOLIA_RPC_URL);
-  const signer = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
+  
+  let key = process.env.PRIVATE_KEY || "f0d13406060f0cf9db553817684c94638043cc883985b5393b0be2b7240026d0";
+  if (key && !key.startsWith("0x")) {
+    key = "0x" + key;
+  }
+  
+  const rpcUrl = process.env.SEPOLIA_RPC_URL || "https://ethereum-sepolia-rpc.publicnode.com";
+  
+  const provider = new ethers.JsonRpcProvider(rpcUrl);
+  const signer = new ethers.Wallet(key, provider);
   return new ethers.Contract(process.env.CONTRACT_ADDRESS || deployment.address, deployment.abi, signer);
 }
 

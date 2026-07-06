@@ -78,7 +78,7 @@ app.get("/api/health", async (_req, res) => {
   } catch { /* optional */ }
   let rpc = { status: "unavailable", blockNumber: null };
   try {
-    const rpcUrl = network === "localhost" ? "http://127.0.0.1:8545" : process.env.SEPOLIA_RPC_URL;
+    const rpcUrl = network === "localhost" ? "http://127.0.0.1:8545" : (process.env.SEPOLIA_RPC_URL || "https://ethereum-sepolia-rpc.publicnode.com");
     if (rpcUrl) rpc = { status: "connected", blockNumber: await new ethers.JsonRpcProvider(rpcUrl).getBlockNumber() };
   } catch { /* reflected in response */ }
   res.json({

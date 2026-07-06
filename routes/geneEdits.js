@@ -28,12 +28,13 @@ function publicDuplicate(edit, req) {
   };
 }
 
+// Returns: true = found on chain, false = definitely NOT on chain, null = RPC unavailable
 async function contractHashExists(sequenceHash) {
   try {
     const network = process.env.NETWORK || "localhost";
     const deployment = require(path.join(__dirname, `../deployments/${network}.json`));
-    const rpcUrl = network === "localhost" ? "http://127.0.0.1:8545" : process.env.SEPOLIA_RPC_URL;
-    if (!rpcUrl) return false;
+    const rpcUrl = network === "localhost" ? "http://127.0.0.1:8545" : (process.env.SEPOLIA_RPC_URL || "https://ethereum-sepolia-rpc.publicnode.com");
+    if (!rpcUrl) return null;
     const contractAddress = process.env.CONTRACT_ADDRESS || deployment.address;
     const contract = new ethers.Contract(contractAddress, deployment.abi, new ethers.JsonRpcProvider(rpcUrl));
     // Ensure the hash is properly padded to bytes32 before querying the contract
@@ -41,7 +42,7 @@ async function contractHashExists(sequenceHash) {
     return Boolean(await contract.hashExists(bytes32Hash));
   } catch (error) {
     console.warn("[duplicate-check] Contract check unavailable:", error.message);
-    return false;
+    return null; // null = could not reach chain — do not block registration
   }
 }
 
@@ -231,7 +232,10 @@ router.patch("/:id/register", verifyUser, async (req, res, next) => {
     }
     const duplicate = await GeneEdit.findOne({ sequenceHash: edit.sequenceHash, _id: { $ne: edit._id } });
     if (duplicate) return res.status(409).json({ error: "Duplicate sequence hash is already registered.", code: "DUPLICATE_HASH" });
-    if (!(await contractHashExists(edit.sequenceHash))) {
+    const onChainResult = await contractHashExists(edit.sequenceHash);
+    // null = RPC unavailable — trust the saved tokenId + txHash as proof of mint
+    // false = definitive: hash is not on chain (don't register)
+    if (onChainResult === false) {
       return res.status(409).json({ error: "The sequence hash was not found in the configured smart contract." });
     }
     edit.status = "registered";

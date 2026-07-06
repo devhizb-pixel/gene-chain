@@ -86,7 +86,7 @@ async function getAllEditsWithSequences() {
     }
 
     const { ethers } = require("ethers");
-    const rpcUrl = network === "localhost" ? "http://127.0.0.1:8545" : (process.env.SEPOLIA_RPC_URL || "");
+    const rpcUrl = network === "localhost" ? "http://127.0.0.1:8545" : (process.env.SEPOLIA_RPC_URL || "https://ethereum-sepolia-rpc.publicnode.com");
     const provider = new ethers.JsonRpcProvider(rpcUrl);
     const contract = new ethers.Contract(deployment.address, deployment.abi, provider);
 

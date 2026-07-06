@@ -56,7 +56,7 @@ router.get("/gene-edit/:id", async (req, res, next) => {
       try {
         const network = process.env.NETWORK || "localhost";
         const deployment = require(path.join(__dirname, `../deployments/${network}.json`));
-        const rpcUrl = network === "localhost" ? "http://127.0.0.1:8545" : process.env.SEPOLIA_RPC_URL;
+        const rpcUrl = network === "localhost" ? "http://127.0.0.1:8545" : (process.env.SEPOLIA_RPC_URL || "https://ethereum-sepolia-rpc.publicnode.com");
         const provider = new ethers.JsonRpcProvider(rpcUrl);
         const contract = new ethers.Contract(process.env.CONTRACT_ADDRESS || deployment.address, deployment.abi, provider);
         const [details, owner, receipt] = await Promise.all([
